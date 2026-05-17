@@ -3,6 +3,7 @@ import { useState } from "react";
 function NegotiationEmail({ email }) {
   const [copied, setCopied] = useState(null);
 
+  console.log("[NegotiationEmail] props received:", email);
   console.log("[NegotiationEmail] Rendering email:", email?.subject);
 
   const copyText = async (text, label) => {
@@ -18,29 +19,76 @@ function NegotiationEmail({ email }) {
 
   if (!email) return null;
 
+  const labelStyle = {
+    fontFamily: "'DM Mono', monospace",
+    fontSize: "0.65rem",
+    letterSpacing: "0.15em",
+    color: "var(--text-muted)",
+    textTransform: "uppercase",
+    display: "block",
+    marginBottom: "0.5rem",
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-mono font-bold text-white">Your Negotiation Email</h2>
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 1.25rem 3rem" }}>
+
+      {/* Section Heading with red left border */}
+      <div style={{ borderLeft: "3px solid var(--red-vivid)", paddingLeft: "1rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={{
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 700,
+          fontSize: "1.4rem",
+          color: "var(--text-primary)",
+          margin: 0,
+        }}>
+          Your Negotiation Email
+        </h2>
         <button
           onClick={() => copyText(`Subject: ${email.subject}\n\n${email.body}`, "all")}
-          className="px-3 py-1 text-xs font-mono border border-slate-600 text-slate-300 hover:bg-slate-800"
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: "0.72rem",
+            color: "var(--text-muted)",
+            backgroundColor: "var(--bg-elevated)",
+            border: "1px solid var(--border-subtle)",
+            padding: "0.3rem 0.75rem",
+            cursor: "pointer",
+            transition: "color 150ms",
+          }}
         >
           {copied === "all" ? "✓ Copied!" : "Copy All"}
         </button>
       </div>
 
       {/* Subject */}
-      <div className="mb-4">
-        <label className="text-slate-400 text-xs font-mono block mb-1">SUBJECT</label>
-        <div className="flex items-center gap-2">
+      <div style={{ marginBottom: "1.25rem" }}>
+        <label style={labelStyle}>Subject</label>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
           <input
-            type="text" readOnly value={email.subject || ""}
-            className="flex-1 bg-navy-light border border-slate-600 text-white px-3 py-2 text-sm font-mono"
+            type="text"
+            readOnly
+            value={email.subject || ""}
+            style={{
+              flex: 1,
+              backgroundColor: "var(--bg-elevated)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-primary)",
+              padding: "0.55rem 0.75rem",
+              fontFamily: "'DM Mono', monospace",
+              fontSize: "0.82rem",
+              outline: "none",
+            }}
           />
           <button
             onClick={() => copyText(email.subject, "subject")}
-            className="px-2 py-2 text-xs border border-slate-600 text-slate-400 hover:bg-slate-800"
+            style={{
+              backgroundColor: "var(--bg-elevated)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-muted)",
+              padding: "0.4rem 0.6rem",
+              cursor: "pointer",
+              fontSize: "0.82rem",
+            }}
           >
             {copied === "subject" ? "✓" : "📋"}
           </button>
@@ -48,27 +96,43 @@ function NegotiationEmail({ email }) {
       </div>
 
       {/* Body */}
-      <div className="mb-4">
-        <label className="text-slate-400 text-xs font-mono block mb-1">EMAIL BODY</label>
-        <pre className="bg-navy-light border border-slate-600 text-slate-200 p-4 text-sm font-mono whitespace-pre-wrap overflow-auto max-h-96">
+      <div style={{ marginBottom: "1.25rem" }}>
+        <label style={labelStyle}>Email Body</label>
+        <pre style={{
+          backgroundColor: "var(--bg-primary)",
+          border: "1px solid var(--border-subtle)",
+          color: "var(--text-primary)",
+          padding: "1.25rem",
+          fontFamily: "'DM Mono', monospace",
+          fontSize: "0.82rem",
+          lineHeight: 1.7,
+          whiteSpace: "pre-wrap",
+          overflowX: "auto",
+          maxHeight: "24rem",
+          overflowY: "auto",
+          margin: 0,
+        }}>
           {email.body}
         </pre>
       </div>
 
       {/* Key Asks */}
       {email.key_asks && email.key_asks.length > 0 && (
-        <div className="mb-4">
-          <label className="text-slate-400 text-xs font-mono block mb-2">KEY ASKS</label>
-          <ol className="list-decimal list-inside space-y-1">
+        <div style={{ marginBottom: "1.25rem" }}>
+          <label style={labelStyle}>Key Asks</label>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
             {email.key_asks.map((ask, i) => (
-              <li key={i} className="text-slate-300 text-sm">{ask}</li>
+              <li key={i} style={{ display: "flex", gap: "0.65rem", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem" }}>
+                <span style={{ color: "var(--red-vivid)", flexShrink: 0 }}>→</span>
+                <span style={{ color: "var(--text-primary)" }}>{ask}</span>
+              </li>
             ))}
-          </ol>
+          </ul>
         </div>
       )}
 
       {/* Disclaimer */}
-      <p className="text-slate-600 text-xs mt-4">
+      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "1rem" }}>
         ⚖️ This is AI-generated. Review with a legal professional before sending.
       </p>
     </div>

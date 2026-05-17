@@ -27,7 +27,7 @@ def _generate_and_parse_json(prompt: str):
             
             # Groq with json_object mode sometimes wraps arrays in 
             # a top-level key. Unwrap if needed.
-            if isinstance(parsed, dict):
+            if isinstance(parsed, dict) and len(parsed) == 1:
                 for key in parsed:
                     if isinstance(parsed[key], list):
                         print(f"[ANALYZER] Unwrapped array from key: '{key}'")

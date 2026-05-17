@@ -7,69 +7,114 @@ function RiskDashboard({ result }) {
     (a, b) => (b.severity_score || 0) - (a.severity_score || 0)
   );
 
-  const riskColor = {
-    critical: "text-critical",
-    high: "text-high",
-    medium: "text-medium",
-    low: "text-low",
+  const riskHex = {
+    critical: "#ff4560",
+    high:     "#ff8c42",
+    medium:   "#ffd166",
+    low:      "#06d6a0",
   };
 
-  const badgeStyle = (level, count) => {
-    const colors = {
-      critical: "bg-critical/20 text-critical border-critical/40",
-      high: "bg-high/20 text-high border-high/40",
-      medium: "bg-medium/20 text-medium border-medium/40",
-      low: "bg-low/20 text-low border-low/40",
-    };
-    return colors[level] || "";
+  const riskGlow = {
+    critical: "0 0 30px rgba(255,69,96,0.4)",
+    high:     "0 0 30px rgba(255,140,66,0.4)",
+    medium:   "0 0 30px rgba(255,209,102,0.4)",
+    low:      "0 0 30px rgba(6,214,160,0.4)",
   };
 
   const total = (result.critical_count||0)+(result.high_count||0)+(result.medium_count||0)+(result.low_count||0) || 1;
 
+  const labelStyle = {
+    fontFamily: "'DM Mono', monospace",
+    fontSize: "0.68rem",
+    letterSpacing: "0.15em",
+    color: "var(--text-muted)",
+    textTransform: "uppercase",
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2.5rem 1.25rem" }}>
+
       {/* Overall Score */}
-      <div className="text-center mb-8">
-        <p className="text-slate-400 text-xs font-mono mb-2">OVERALL RISK SCORE</p>
-        <p className={`text-6xl font-mono font-bold ${riskColor[result.overall_risk] || "text-white"}`}>
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}
+        className={result.overall_risk === "critical" ? "animate-pulse" : ""}
+      >
+        <p style={labelStyle}>Overall Risk Score</p>
+        <p style={{
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 800,
+          fontSize: "clamp(5rem, 14vw, 8rem)",
+          color: riskHex[result.overall_risk] || "var(--text-primary)",
+          textShadow: riskGlow[result.overall_risk] || "none",
+          lineHeight: 1,
+          margin: "0.25rem 0",
+        }}>
           {result.overall_score}
         </p>
-        <p className={`text-sm font-mono mt-1 uppercase ${riskColor[result.overall_risk] || ""}`}>
+        <p style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: "0.75rem",
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          color: riskHex[result.overall_risk] || "var(--text-muted)",
+          marginTop: "0.5rem",
+        }}>
           {result.overall_risk} risk
         </p>
       </div>
 
-      {/* Count Badges */}
-      <div className="flex justify-center gap-3 mb-6 flex-wrap">
+      {/* Count Badges — outline style */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
         {[
           ["critical", result.critical_count],
-          ["high", result.high_count],
-          ["medium", result.medium_count],
-          ["low", result.low_count],
+          ["high",     result.high_count],
+          ["medium",   result.medium_count],
+          ["low",      result.low_count],
         ].map(([level, count]) => (
-          <span key={level} className={`px-3 py-1 text-xs font-mono border ${badgeStyle(level)}`}>
-            {level.toUpperCase()}: {count || 0}
+          <span key={level} style={{
+            border: `1px solid ${riskHex[level]}`,
+            color: riskHex[level],
+            background: "transparent",
+            padding: "0.15rem 0.75rem",
+            fontFamily: "'DM Mono', monospace",
+            fontSize: "0.68rem",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+          }}>
+            {level}: {count || 0}
           </span>
         ))}
       </div>
 
-      {/* Risk Bar */}
-      <div className="flex h-2 mb-6 overflow-hidden">
-        {result.critical_count > 0 && <div className="bg-critical" style={{width:`${(result.critical_count/total)*100}%`}} />}
-        {result.high_count > 0 && <div className="bg-high" style={{width:`${(result.high_count/total)*100}%`}} />}
-        {result.medium_count > 0 && <div className="bg-medium" style={{width:`${(result.medium_count/total)*100}%`}} />}
-        {result.low_count > 0 && <div className="bg-low" style={{width:`${(result.low_count/total)*100}%`}} />}
+      {/* Risk Bar — 3px, sharp */}
+      <div style={{ display: "flex", height: "3px", marginBottom: "1.25rem", overflow: "hidden" }}>
+        {result.critical_count > 0 && <div style={{ backgroundColor: riskHex.critical, width: `${(result.critical_count/total)*100}%` }} />}
+        {result.high_count > 0     && <div style={{ backgroundColor: riskHex.high,     width: `${(result.high_count/total)*100}%` }} />}
+        {result.medium_count > 0   && <div style={{ backgroundColor: riskHex.medium,   width: `${(result.medium_count/total)*100}%` }} />}
+        {result.low_count > 0      && <div style={{ backgroundColor: riskHex.low,      width: `${(result.low_count/total)*100}%` }} />}
       </div>
 
       {/* Persona Context */}
-      <p className="text-slate-500 text-xs font-mono text-center mb-8">
-        Analyzing as: {result.persona?.role} · Concern: {result.persona?.concern || "—"}
+      <p style={{ ...labelStyle, textAlign: "center", marginBottom: "1.5rem" }}>
+        Analyzing as:{" "}
+        <span style={{
+          backgroundColor: "var(--bg-elevated)",
+          border: "1px solid var(--border-subtle)",
+          padding: "0.1rem 0.5rem",
+          borderRadius: "2px",
+          color: "var(--text-primary)",
+        }}>
+          {result.persona?.role}
+        </span>
+        {" "}· Concern: {result.persona?.concern || "—"}
       </p>
 
+      {/* Gradient Divider */}
+      <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, var(--red-vivid), var(--orange-vivid), transparent)", marginBottom: "2rem" }} />
+
       {/* Clause List */}
-      <div className="space-y-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
         {sortedClauses.map((clause) => (
-          <ClauseCard key={clause.id} clause={clause} />
+          <ClauseCard key={clause.id} clause={clause} riskHex={riskHex} />
         ))}
       </div>
     </div>
