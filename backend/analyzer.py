@@ -1,27 +1,43 @@
-from google import genai
-import os
-import json
-import asyncio
-import sys
+from groq import Groq
+import os, json, asyncio, sys
 
-if "GEMINI_API_KEY" not in os.environ:
-    print("WARNING: GEMINI_API_KEY not set in environment.", file=sys.stderr)
-
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+if not os.environ.get("GROQ_API_KEY"):
+    print("WARNING: GROQ_API_KEY not set in environment.", file=sys.stderr)
 
 def _generate_and_parse_json(prompt: str):
-    """Helper to call Gemini, strip markdown, and parse JSON with 1 retry."""
     for attempt in range(2):
         try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
+            print(f"[ANALYZER] Calling Groq API (attempt {attempt + 1})...")
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                response_format={"type": "json_object"}
             )
-            text = response.text
-            clean_text = text.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
-            return json.loads(clean_text)
+            raw_text = response.choices[0].message.content
+            print(f"[ANALYZER] Raw response received, length: {len(raw_text)}")
+            
+            # Defensive parsing: strip markdown fences if present
+            clean_text = raw_text.strip()
+            clean_text = clean_text.lstrip("```json").lstrip("```")
+            clean_text = clean_text.rstrip("```").strip()
+            
+            parsed = json.loads(clean_text)
+            
+            # Groq with json_object mode sometimes wraps arrays in 
+            # a top-level key. Unwrap if needed.
+            if isinstance(parsed, dict):
+                for key in parsed:
+                    if isinstance(parsed[key], list):
+                        print(f"[ANALYZER] Unwrapped array from key: '{key}'")
+                        return parsed[key]
+            
+            return parsed
+            
         except Exception as e:
             print(f"[ANALYZER] Error on attempt {attempt + 1}: {e}", file=sys.stderr)
+            print(f"[ANALYZER] Raw output was: {raw_text if 'raw_text' in locals() else 'no response'}", file=sys.stderr)
             if attempt == 1:
                 raise
 

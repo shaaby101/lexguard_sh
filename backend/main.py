@@ -37,6 +37,18 @@ async def health_check():
     return {"status": "ok", "model": "gemini-2.5-flash"}
 
 
+def is_valid_contract(text: str) -> bool:
+    contract_keywords = [
+        "agreement", "contract", "party", "parties", "terms",
+        "obligations", "clause", "whereas", "hereby", "signed",
+        "confidential", "termination", "liability", "govern",
+        "indemnify", "warranty", "jurisdiction", "dispute", "breach"
+    ]
+    text_lower = text.lower()
+    matches = sum(1 for kw in contract_keywords if kw in text_lower)
+    print(f"[VALIDATOR] Contract keyword matches: {matches}/19")
+    return matches >= 3
+
 MAX_FILE_SIZE = 10 * 1024 * 1024 # 10MB
 
 @app.post("/analyze")
@@ -64,6 +76,13 @@ async def analyze_contract(
         print("[ANALYZE] Extracting text using parser...")
         contract_text = await asyncio.to_thread(parser.extract_text, file_bytes)
         print(f"[ANALYZE] Text extraction complete. Length: {len(contract_text)} chars")
+        
+        if not is_valid_contract(contract_text):
+            print("[VALIDATOR] Rejected: document does not appear to be a legal contract")
+            raise HTTPException(
+                status_code=422,
+                detail="This document does not appear to be a legal contract. Please upload a contract, NDA, employment agreement, or similar legal document."
+            )
         
         persona = {
             "role": role,
